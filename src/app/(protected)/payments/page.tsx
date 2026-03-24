@@ -2,9 +2,15 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
-export default async function PaymentsPage() {
+export default async function PaymentsPage({
+  searchParams
+}: {
+  searchParams?: Promise<{ success?: string; error?: string }>;
+}) {
   const session = await auth();
   if (!session) redirect("/login");
+
+  const params = await searchParams;
 
   const payments = await prisma.payment.findMany({
     where:
@@ -24,6 +30,9 @@ export default async function PaymentsPage() {
 
   return (
     <div className="space-y-4">
+      {params?.success ? <p className="bg-emerald-100 text-emerald-700 p-3 rounded-lg text-sm">To'lov muvaffaqiyatli amalga oshirildi.</p> : null}
+      {params?.error ? <p className="bg-red-100 text-red-700 p-3 rounded-lg text-sm">To'lov bajarilmadi. Qayta urinib ko'ring.</p> : null}
+
       {session.user.role === "parent" ? (
         <div className="bg-white p-4 rounded shadow">
           <h2 className="font-semibold mb-2">To'lash</h2>
@@ -31,6 +40,7 @@ export default async function PaymentsPage() {
             <p className="text-sm text-slate-500">To'lanmagan invoice yo'q.</p>
           ) : (
             <form action="/api/payments/pay" method="post" className="grid grid-cols-3 gap-2">
+              <input type="hidden" name="returnTo" value="/payments" />
               <select name="invoiceId" className="border rounded p-2" required>
                 {unpaid.map((u) => (
                   <option key={u.id} value={u.id}>

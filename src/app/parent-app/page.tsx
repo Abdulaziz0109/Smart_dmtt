@@ -3,15 +3,32 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export default async function ParentWebAppPage() {
+function StatusBadge({ status }: { status: "unpaid" | "paid" | "cancelled" | "overdue" }) {
+  const map = {
+    unpaid: "bg-amber-100 text-amber-700",
+    paid: "bg-emerald-100 text-emerald-700",
+    overdue: "bg-red-100 text-red-700",
+    cancelled: "bg-slate-100 text-slate-600"
+  };
+  const label = { unpaid: "To'lanmagan", paid: "To'langan", overdue: "Kechikkan", cancelled: "Bekor qilingan" }[status];
+  return <span className={`text-xs px-2 py-1 rounded-full ${map[status]}`}>{label}</span>;
+}
+
+export default async function ParentWebAppPage({
+  searchParams
+}: {
+  searchParams?: Promise<{ success?: string; error?: string }>;
+}) {
   const session = await auth();
   if (!session || session.user.role !== "parent") redirect("/");
+
+  const params = await searchParams;
 
   const profile = await prisma.parentProfile.findUnique({
     where: { userId: session.user.id },
     include: {
       children: { include: { kindergarten: true } },
-      invoices: { where: { status: "unpaid" }, include: { child: true }, orderBy: { dueDate: "asc" } }
+      invoices: { include: { child: true }, orderBy: { dueDate: "asc" }, take: 20 }
     }
   });
 
@@ -25,12 +42,7 @@ export default async function ParentWebAppPage() {
     include: { kindergarten: true }
   });
 
-  const payments = await prisma.payment.findMany({
-    where: { invoice: { parent: { userId: session.user.id } } },
-    include: { invoice: { include: { child: true } } },
-    orderBy: { paidAt: "desc" },
-    take: 10
-  });
+  const unpaidInvoices = profile.invoices.filter((i) => i.status === "unpaid");
 
   async function enrollFromWebApp(formData: FormData) {
     "use server";
@@ -59,6 +71,9 @@ export default async function ParentWebAppPage() {
 
   return (
     <div className="space-y-4">
+      {params?.success ? <p className="bg-emerald-100 text-emerald-700 p-3 rounded-lg text-sm">To'lov muvaffaqiyatli amalga oshirildi.</p> : null}
+      {params?.error ? <p className="bg-red-100 text-red-700 p-3 rounded-lg text-sm">Amal bajarilmadi. Iltimos, qayta urinib ko'ring.</p> : null}
+
       <section className="bg-white rounded-xl p-4 shadow-sm">
         <h2 className="font-semibold mb-2">Farzandlarim</h2>
         {profile.children.length === 0 ? <p className="text-sm text-slate-500">Farzand qo'shilmagan.</p> : null}
@@ -103,36 +118,41 @@ export default async function ParentWebAppPage() {
       </section>
 
       <section className="bg-white rounded-xl p-4 shadow-sm">
-        <h2 className="font-semibold mb-2">To'lanmagan invoice</h2>
-        {profile.invoices.length === 0 ? <p className="text-sm text-slate-500">Qarzlar yo'q.</p> : null}
-        <form action="/api/payments/pay" method="post" className="space-y-2">
-          <select name="invoiceId" className="w-full border rounded-lg p-2" required>
-            {profile.invoices.map((invoice) => (
-              <option key={invoice.id} value={invoice.id}>
-                {invoice.child.fullName} - {invoice.month} - {Number(invoice.amount)} so'm
-              </option>
-            ))}
-          </select>
-          <select name="provider" className="w-full border rounded-lg p-2" required>
-            <option value="click">Click</option>
-            <option value="payme">Payme</option>
-          </select>
-          <button className="w-full bg-blue-600 text-white rounded-lg p-2">To'lash</button>
-        </form>
+        <h2 className="font-semibold mb-2">Invoice ro'yxati</h2>
+        {profile.invoices.length === 0 ? <p className="text-sm text-slate-500">Invoice topilmadi.</p> : null}
+        <div className="space-y-2">
+          {profile.invoices.map((invoice) => (
+            <div key={invoice.id} className="border rounded-lg p-2 flex items-center justify-between">
+              <div>
+                <p className="font-medium">{invoice.child.fullName}</p>
+                <p className="text-xs text-slate-500">{invoice.month} • {Number(invoice.amount)} so'm</p>
+              </div>
+              <StatusBadge status={invoice.status} />
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="bg-white rounded-xl p-4 shadow-sm">
-        <h2 className="font-semibold mb-2">So'nggi to'lovlar</h2>
-        {payments.length === 0 ? <p className="text-sm text-slate-500">To'lovlar hali yo'q.</p> : null}
-        <ul className="space-y-2">
-          {payments.map((payment) => (
-            <li key={payment.id} className="border rounded-lg p-2">
-              <p className="font-medium">{payment.invoice.child.fullName}</p>
-              <p className="text-sm">{Number(payment.amount)} so'm • {payment.provider}</p>
-              <p className="text-xs text-slate-500">{new Date(payment.paidAt).toLocaleString()}</p>
-            </li>
-          ))}
-        </ul>
+        <h2 className="font-semibold mb-2">To'lov qilish</h2>
+        {unpaidInvoices.length === 0 ? <p className="text-sm text-slate-500">To'lanmagan invoice yo'q.</p> : null}
+        {unpaidInvoices.length > 0 ? (
+          <form action="/api/payments/pay" method="post" className="space-y-2">
+            <input type="hidden" name="returnTo" value="/parent-app" />
+            <select name="invoiceId" className="w-full border rounded-lg p-2" required>
+              {unpaidInvoices.map((invoice) => (
+                <option key={invoice.id} value={invoice.id}>
+                  {invoice.child.fullName} - {invoice.month} - {Number(invoice.amount)} so'm
+                </option>
+              ))}
+            </select>
+            <select name="provider" className="w-full border rounded-lg p-2" required>
+              <option value="click">Click</option>
+              <option value="payme">Payme</option>
+            </select>
+            <button className="w-full bg-blue-600 text-white rounded-lg p-2">To'lash</button>
+          </form>
+        ) : null}
       </section>
     </div>
   );

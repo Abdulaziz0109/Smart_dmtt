@@ -13,20 +13,23 @@ export async function POST(request: Request) {
   const payload = isJson ? await request.json() : Object.fromEntries((await request.formData()).entries());
 
   const parsed = payInvoiceSchema.safeParse(payload);
+  const fallbackReturnTo = session.user.role === "parent" ? "/parent-app" : "/payments";
+  const returnTo = parsed.success ? parsed.data.returnTo || fallbackReturnTo : fallbackReturnTo;
+
   if (!parsed.success) {
     if (isJson) return NextResponse.json(parsed.error.flatten(), { status: 400 });
-    return NextResponse.redirect(new URL("/payments?error=invalid_payload", request.url), 303);
+    return NextResponse.redirect(new URL(`${returnTo}?error=invalid_payload`, request.url), 303);
   }
 
   const invoice = await prisma.invoice.findUnique({ where: { id: parsed.data.invoiceId }, include: { parent: true } });
   if (!invoice || invoice.status !== "unpaid") {
     if (isJson) return NextResponse.json({ error: "Invoice unavailable" }, { status: 400 });
-    return NextResponse.redirect(new URL("/payments?error=invoice_unavailable", request.url), 303);
+    return NextResponse.redirect(new URL(`${returnTo}?error=invoice_unavailable`, request.url), 303);
   }
 
   if (session.user.role === "parent" && invoice.parent.userId !== session.user.id) {
     if (isJson) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    return NextResponse.redirect(new URL("/payments?error=forbidden", request.url), 303);
+    return NextResponse.redirect(new URL(`${returnTo}?error=forbidden`, request.url), 303);
   }
 
   const provider = getProvider(parsed.data.provider);
@@ -35,7 +38,7 @@ export async function POST(request: Request) {
 
   if (!result.success) {
     if (isJson) return NextResponse.json({ error: "Payment failed" }, { status: 400 });
-    return NextResponse.redirect(new URL("/payments?error=payment_failed", request.url), 303);
+    return NextResponse.redirect(new URL(`${returnTo}?error=payment_failed`, request.url), 303);
   }
 
   await prisma.$transaction([
@@ -54,5 +57,5 @@ export async function POST(request: Request) {
 
   await logAudit(session.user.id, "invoice_paid", "Invoice", invoice.id, parsed.data.provider);
 
-  return NextResponse.redirect(new URL("/payments?success=1", request.url), 303);
+  return NextResponse.redirect(new URL(`${returnTo}?success=1`, request.url), 303);
 }

@@ -127,3 +127,10 @@ MTT 1,1122,Office Market,stationery,120000,2026-03-05T09:30:00Z,UZS,REF-10,compl
 - Parent uchun alohida Telegram WebApp interfeysi (`/parent-app`)
 - Rolga mos menyular markazlashgan (`src/lib/navigation.ts`)
 - Parent foydalanuvchi admin/direktor xarajat sahifalarini ko'rmaydi
+
+
+### Parent WebApp UX
+- Mobil-first interfeys va pastki navigatsiya (`/parent-app`, `/parent-app/history`)
+- Invoice holat badge-lari: to'langan/to'lanmagan/kechikkan
+- To'lovdan so'ng success/error feedback
+- Parent form-lari soddalashtirilgan va admin uslubidagi elementlar olib tashlangan

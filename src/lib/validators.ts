@@ -18,7 +18,8 @@ export const enrollmentSchema = z.object({
 
 export const payInvoiceSchema = z.object({
   invoiceId: z.string().cuid(),
-  provider: z.enum(["click", "payme"])
+  provider: z.enum(["click", "payme"]),
+  returnTo: z.string().startsWith("/").optional()
 });
 
 export const expenseLimitSchema = z.object({

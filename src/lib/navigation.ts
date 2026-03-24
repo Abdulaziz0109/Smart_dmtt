@@ -41,7 +41,7 @@ export function getNavigation(role: UserRole): { primary: NavItem[]; secondary: 
       { href: "/children", label: "Farzandlarim" },
       { href: "/clubs", label: "To'garaklar" },
       { href: "/enrollments", label: "Yozilishlar" },
-      { href: "/invoices", label: "Invoice" },
+      { href: "/invoices", label: "Hisoblar" },
       { href: "/payments", label: "To'lovlar" },
       { href: "/parent-app", label: "Telegram WebApp" }
     ],
