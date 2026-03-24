@@ -20,10 +20,14 @@ export default async function ParentPage() {
   const session = await auth();
   if (session?.user.role !== "parent") redirect("/");
 
-  const profile = await prisma.parentProfile.findUnique({
-    where: { userId: session.user.id },
-    include: { children: true, invoices: true, payments: true }
-  });
+  const [profile, paidCount] = await Promise.all([
+    prisma.parentProfile.findUnique({
+      where: { userId: session.user.id },
+      include: { children: true, invoices: true }
+    }),
+    prisma.payment.count({ where: { invoice: { parent: { userId: session.user.id } } } })
+  ]);
+
   if (!profile) return <p className="text-sm text-slate-500">Profil topilmadi.</p>;
 
   const unpaid = profile.invoices.filter((i) => i.status === "unpaid" || i.status === "overdue");
@@ -38,7 +42,7 @@ export default async function ParentPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard label="Farzandlar soni" value={profile.children.length} tone="success" />
         <StatCard label="To'lanmagan hisoblar" value={unpaid.length} tone={unpaid.length > 0 ? "warning" : "success"} />
-        <StatCard label="Jami to'lovlar" value={profile.payments.length} tone="neutral" />
+        <StatCard label="Jami to'lovlar" value={paidCount} tone="neutral" />
       </div>
 
       <SectionCard title="Asosiy xizmatlar" description="Pastdagi bo'limlardan veb yoki mobil ko'rinishda davom etishingiz mumkin.">
