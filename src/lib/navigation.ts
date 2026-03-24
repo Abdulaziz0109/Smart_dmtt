@@ -6,7 +6,7 @@ export function getNavigation(role: UserRole): { primary: NavItem[]; secondary: 
   if (role === "district_admin") {
     return {
       primary: [
-        { href: "/admin", label: "Dashboard" },
+        { href: "/admin", label: "Bosh sahifa" },
         { href: "/kindergartens", label: "MTTlar" },
         { href: "/clubs", label: "To'garaklar" },
         { href: "/invoices", label: "Hisob-fakturalar" },
@@ -15,7 +15,7 @@ export function getNavigation(role: UserRole): { primary: NavItem[]; secondary: 
         { href: "/suspicious", label: "Shubhali operatsiyalar", badge: "Risk" }
       ],
       secondary: [
-        { href: "/limits", label: "Limit sozlamalari" },
+        { href: "/limits", label: "Limitlar" },
         { href: "/users", label: "Foydalanuvchilar" }
       ]
     };
@@ -24,7 +24,7 @@ export function getNavigation(role: UserRole): { primary: NavItem[]; secondary: 
   if (role === "kindergarten_director" || role === "staff") {
     return {
       primary: [
-        { href: "/director", label: "Dashboard" },
+        { href: "/director", label: "Bosh sahifa" },
         { href: "/clubs", label: "To'garaklar" },
         { href: "/enrollments", label: "Yozilishlar" },
         { href: "/invoices", label: "Hisob-fakturalar" },
@@ -42,7 +42,7 @@ export function getNavigation(role: UserRole): { primary: NavItem[]; secondary: 
       { href: "/clubs", label: "To'garaklar" },
       { href: "/enrollments", label: "Yozilishlar" },
       { href: "/invoices", label: "Invoice" },
-      { href: "/payments", label: "To'lovlar tarixi" },
+      { href: "/payments", label: "To'lovlar" },
       { href: "/parent-app", label: "Telegram WebApp" }
     ],
     secondary: []

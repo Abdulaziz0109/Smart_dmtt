@@ -120,3 +120,10 @@ MTT 1,1122,Office Market,stationery,120000,2026-03-05T09:30:00Z,UZS,REF-10,compl
 ### Telegram-first yo'nalish
 - Parent uchun mobilga mos `parent-app` UI qo'shildi
 - Bot menyusi va xabar shablonlari kodda alohida scaffold sifatida saqlandi
+
+
+### UI va navigatsiya
+- Yagona sidebar/topbar shell (admin, director, staff)
+- Parent uchun alohida Telegram WebApp interfeysi (`/parent-app`)
+- Rolga mos menyular markazlashgan (`src/lib/navigation.ts`)
+- Parent foydalanuvchi admin/direktor xarajat sahifalarini ko'rmaydi

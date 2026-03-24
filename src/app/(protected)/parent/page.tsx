@@ -1,12 +1,49 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+
+function StatCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+      <p className="text-sm text-slate-500">{label}</p>
+      <p className="text-2xl font-semibold mt-1">{value}</p>
+    </div>
+  );
+}
 
 export default async function ParentPage() {
   const session = await auth();
   if (session?.user.role !== "parent") redirect("/");
+
   const profile = await prisma.parentProfile.findUnique({ where: { userId: session.user.id }, include: { children: true, invoices: true } });
   if (!profile) return <p>Profil topilmadi</p>;
-  const unpaid = profile.invoices.filter((i) => i.status === "unpaid").length;
-  return <div className="space-y-4"><h1 className="text-xl font-bold">Ota-ona paneli</h1><div className="grid grid-cols-2 gap-4"><div className="bg-white p-4 rounded shadow"><p>Farzandlar</p><p className="text-2xl">{profile.children.length}</p></div><div className="bg-white p-4 rounded shadow"><p>To'lanmagan invoice</p><p className="text-2xl">{unpaid}</p></div></div></div>;
+
+  const unpaid = profile.invoices.filter((i) => i.status === "unpaid");
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Ota-ona sahifasi</h1>
+        <p className="text-sm text-slate-500">Farzandlar, to'garaklar va to'lovlarni boshqarish.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <StatCard label="Farzandlar soni" value={profile.children.length} />
+        <StatCard label="To'lanmagan invoice" value={unpaid.length} />
+        <StatCard label="Telegram WebApp" value="Tayyor" />
+      </div>
+
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+        <h2 className="font-semibold mb-3">Tezkor amallar</h2>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/children" className="border rounded px-3 py-2">Farzandlarim</Link>
+          <Link href="/clubs" className="border rounded px-3 py-2">To'garaklar</Link>
+          <Link href="/invoices" className="border rounded px-3 py-2">Invoice</Link>
+          <Link href="/payments" className="border rounded px-3 py-2">To'lash</Link>
+          <Link href="/parent-app" className="bg-blue-600 text-white rounded px-3 py-2">Telegram WebApp</Link>
+        </div>
+      </div>
+    </div>
+  );
 }
