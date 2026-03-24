@@ -4,11 +4,18 @@ import Link from "next/link";
 import { LogoutButton } from "@/components/logout-button";
 
 function Nav({ role }: { role: string }) {
-  const common = [
-    { href: "/clubs", label: "To'garaklar" },
-    { href: "/invoices", label: "Hisob-fakturalar" },
-    { href: "/transactions", label: "Xarajatlar" }
-  ];
+  const common =
+    role === "parent"
+      ? [
+          { href: "/clubs", label: "To'garaklar" },
+          { href: "/invoices", label: "Hisob-fakturalar" }
+        ]
+      : [
+          { href: "/clubs", label: "To'garaklar" },
+          { href: "/invoices", label: "Hisob-fakturalar" },
+          { href: "/transactions", label: "Xarajatlar" }
+        ];
+
   const admin = [
     { href: "/admin", label: "Admin dashboard" },
     { href: "/kindergartens", label: "MTTlar" },
@@ -16,11 +23,13 @@ function Nav({ role }: { role: string }) {
     { href: "/suspicious", label: "Shubhali" },
     { href: "/limits", label: "Limitlar" }
   ];
+
   const director = [
     { href: "/director", label: "Direktor dashboard" },
     { href: "/enrollments", label: "Enrollments" },
     { href: "/payments", label: "To'lovlar" }
   ];
+
   const parent = [
     { href: "/parent", label: "Ota-ona dashboard" },
     { href: "/children", label: "Farzandlarim" },

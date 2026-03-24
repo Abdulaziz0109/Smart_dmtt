@@ -5,10 +5,20 @@ import { redirect } from "next/navigation";
 export default async function TransactionsPage() {
   const session = await auth();
   if (!session) redirect("/login");
-  if (session.user.role === "parent") redirect("/parent");
+
+  if (session.user.role === "parent") {
+    redirect("/parent");
+  }
+
+  const isAdmin = session.user.role === "district_admin";
+  const kindergartenId = session.user.kindergartenId;
+
+  if (!isAdmin && !kindergartenId) {
+    redirect("/");
+  }
 
   const tx = await prisma.cardTransaction.findMany({
-    where: session.user.role === "district_admin" ? {} : { kindergartenId: session.user.kindergartenId! },
+    where: isAdmin ? {} : { kindergartenId },
     include: { kindergarten: true },
     orderBy: { transactionTime: "desc" }
   });
@@ -17,7 +27,7 @@ export default async function TransactionsPage() {
     <div className="space-y-4">
       <h1 className="text-xl font-bold">Xarajat tranzaksiyalari</h1>
 
-      {session.user.role === "district_admin" ? (
+      {isAdmin ? (
         <form action="/api/transactions/import" method="post" encType="multipart/form-data" className="bg-white p-4 rounded shadow flex gap-2 items-center">
           <input type="file" name="file" accept=".csv" className="border p-2 rounded" required />
           <button className="bg-blue-600 text-white rounded px-4 py-2">CSV yuklash</button>
