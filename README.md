@@ -105,3 +105,18 @@ MTT 1,1122,Office Market,stationery,120000,2026-03-05T09:30:00Z,UZS,REF-10,compl
    - Confirm PostgreSQL is running and `DATABASE_URL` is reachable.
 3. **Cannot log in**
    - Rerun seed: `npm run prisma:seed`.
+
+
+## Axborot arxitekturasi (yangilangan)
+- **Web Admin Panel**: district admin va direktor/xodim uchun bitta boshqaruv paneli
+- **Parent WebApp**: `/parent-app` sahifasi (Telegram WebApp uchun tayyor UI)
+- **Telegram Bot Scaffold**: `src/telegram/bot-menu.ts` ichida menyu/notification oqimlari
+
+### Rollar bo'yicha interfeys
+- District Admin: to'liq ko'rinish (dashboard, mttlar, limits, suspicious, users)
+- Director/Staff: faqat o'z MTT bo'yicha operatsiyalar
+- Parent: faqat ota-ona oqimi (farzandlar, to'garak, invoice, to'lov, webapp)
+
+### Telegram-first yo'nalish
+- Parent uchun mobilga mos `parent-app` UI qo'shildi
+- Bot menyusi va xabar shablonlari kodda alohida scaffold sifatida saqlandi
