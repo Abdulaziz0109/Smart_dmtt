@@ -1,0 +1,4 @@
+@import "tailwindcss";
+
+body { @apply bg-slate-50 text-slate-900; }
+a { @apply text-blue-600 hover:text-blue-800; }
